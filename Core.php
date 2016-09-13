@@ -83,9 +83,6 @@ class Core {
 			$this->get_logger("debug", "fallo");
 			do_action("todopago_sar_response_error");
 		}
-		// do_action("todopago_response_sar", $responseSAR);
-		//add_action("todopago_response_sar", "mi_responsesar_processor",0,2);
-
 		do_action("todopago_post_call_sar");
 	}
 
