@@ -1,8 +1,11 @@
 <?php
-
-require("vendor/autoload.php");
-
 namespace TodoPago;
+
+require_once("vendor/autoload.php");
+
+
+define('TODOPAGO_FORMS_PROD','https://forms.todopago.com.ar');
+define('TODOPAGO_FORMS_TEST','https://developers.todopago.com.ar');
 
 class Core {
 	const HYBRID_FORM = "hib";
@@ -42,6 +45,43 @@ class Core {
 			if($form_type == self::HIBRIDO_FORM){
 				//TODO: Loguear
 				do_action("todopago_sar_hybridform", $responseSAR);
+
+				////HIBRIDO
+										$basename = apply_filters("todopago_sar_hybridform_basename");
+                    $baseurl = plugins_url();
+                    $form_dir = "$baseurl/$basename/view/formulario-hibrido";
+                    $firstname = $dataOperacion['CSSTFIRSTNAME'];
+                    $lastname = $dataOperacion['CSSTLASTNAME'];
+                    $email = $dataOperacion['CSSTEMAIL'];
+                    $merchant = $dataOperacion['MERCHANT'];
+                    $amount = $dataOperacion['CSPTGRANDTOTALAMOUNT'];
+										$prk = $responseSAR["PublicRequestKey"];
+
+
+                    $home = home_url();
+
+                    $arrayHome = explode ("/", $home);
+
+
+                    // $return_URL_ERROR = $arrayHome[0].'//'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
+										$return_URL_ERROR = apply_filters("todopago_sar_externalform_urlerror");
+
+                    // if($this->url_after_redirection == "order_received"){
+                    //     $return_URL_OK = $order->get_checkout_order_received_url().'&second_step=true';
+                    // }else{
+                    //     $return_URL_OK = $arrayHome[0].'//'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
+                    //
+                    // }
+										$return_URL_OK = apply_filters("todopago_sar_externalform_urlok");
+
+										$mode = apply_filters("todopago_mode","test");
+
+                    $env_url = ($mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
+
+										do_action("todopago_sar_hybridform_beforedraw");
+
+                    require 'view/formulario-hibrido/formulario.php';
+
 			}
 			else($form_type == self::EXTERNAL_FORM){
 				//TODO: Loguear
