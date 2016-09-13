@@ -20,18 +20,25 @@ class Core {
 	public function call_sar() {
 		do_action("todopago_pre_call_sar");	
 
-		$http_header = apply_filters("todopago_sar_data_comercio",array());
-		$mode = apply_filters("todopago_sar_data_operacion",array());
+		$dataComercio = apply_filters("todopago_sar_data_comercio", array());
+		$dataOperacion = apply_filters("todopago_sar_data_operacion", array());
 
-		$responseSAR = $this->sdk->sendAuthorizaRequest($dataComercio,$dataOperacion);
-		do_action("todopago_response_sar",$responseSAR);
+		$responseSAR = $this->sdk->sendAuthorizaRequest($dataComercio, $dataOperacion);
+		do_action("todopago_response_sar", $responseSAR);
 		//add_action("todopago_response_sar", "mi_responsesar_processor",0,2);
 
 		do_action("todopago_post_call_sar");	
 	}
 
 	public function call_gaa() {
+		do_action("todopago_pre_call_gaa");	
 
+		$optionsAnswer = apply_filters("todopago_gaa_options_answer", array());
+
+		$responseGAA = $this->sdk->getAuthorizeAnswer($optionsAnswer);
+		do_action("todopago_response_gaa", $responseGAA);
+
+		do_action("todopago_post_call_gaa");
 	}
 
 	public function get_status() {
