@@ -72,30 +72,10 @@ class Core {
 			$form_type = apply_filters("todopago_sar_formtype", $responseSAR);
 
 			if($form_type == self::HIBRIDO_FORM){
-				$this->get_logger("info", "formulario hibrido");
-				$basename = apply_filters("todopago_sar_hybridform_basename");
-        $baseurl = plugins_url();
-        $form_dir = "$baseurl/$basename/view/formulario-hibrido";
-        $firstname = $dataOperacion['CSSTFIRSTNAME'];
-        $lastname = $dataOperacion['CSSTLASTNAME'];
-        $email = $dataOperacion['CSSTEMAIL'];
-
-        $merchant = $dataOperacion['MERCHANT'];
-        $amount = $dataOperacion['CSPTGRANDTOTALAMOUNT'];
-				$prk = $responseSAR["PublicRequestKey"];
-
-        $return_URL_ERROR = apply_filters("todopago_sar_externalform_urlerror");
-				$return_URL_OK = apply_filters("todopago_sar_externalform_urlok");
-
-        $env_url = ($this->mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
-
-				do_action("todopago_sar_hybridform_beforedraw");
-
-        require 'view/formulario-hibrido/formulario.php';
-
+				do_action("todopago_draw_hybrid_form");
 			}
 			else($form_type == self::EXTERNAL_FORM){
-				$this->get_logger("debug", "formulario ecterno");
+				$this->get_logger("debug", "formulario externo");
 				do_action("todopago_sar_externalform", $responseSAR);
 			}
 		}
@@ -107,6 +87,34 @@ class Core {
 		//add_action("todopago_response_sar", "mi_responsesar_processor",0,2);
 
 		do_action("todopago_post_call_sar");
+	}
+
+	public function draw_hibryd_form()
+	{
+		do_action("todopago_pre_draw_hybrid_form");
+
+		$this->get_logger("debug", __METHOD__);
+		$basename = apply_filters("todopago_sar_hybridform_basename");
+		$baseurl = plugins_url();
+		$form_dir = "$baseurl/$basename/view/formulario-hibrido";
+		$firstname = $dataOperacion['CSSTFIRSTNAME'];
+		$lastname = $dataOperacion['CSSTLASTNAME'];
+		$email = $dataOperacion['CSSTEMAIL'];
+
+		$merchant = $dataOperacion['MERCHANT'];
+		$amount = $dataOperacion['CSPTGRANDTOTALAMOUNT'];
+		$prk = $responseSAR["PublicRequestKey"];
+
+		$return_URL_ERROR = apply_filters("todopago_sar_externalform_urlerror");
+		$return_URL_OK = apply_filters("todopago_sar_externalform_urlok");
+
+		$env_url = ($this->mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
+
+		do_action("todopago_hybridform_beforedraw");
+
+		require 'view/formulario-hibrido/formulario.php';
+
+		do_action("todopago_post_draw_hybrid_form");
 	}
 
 	public function call_gaa() {
@@ -268,6 +276,6 @@ class Core {
 
 		add_filter("todopago_response_get_status_format", 'format_status' );
 		add_filter("todopago_response_get_credentials_format", 'format_credentials' );
-
+		add_action("todopago_draw_hybrid_form", "draw_hybrid_form");
 
 	}
