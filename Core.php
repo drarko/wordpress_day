@@ -15,13 +15,16 @@ class Core {
 	private $logger;
 	private $mode;
 	private $http_header;
+	private $wpdb;
 
 	public function __construct($logger) {
 		do_action("todopago_pre_create_sdk");
 
+		global $wpdb;
 		$this->logger = $logger;
 		$this->http_header = apply_filters("todopago_header","");
 		$this->mode = apply_filters("todopago_mode","test");
+		$this->wpdb = $wpdb
 
 		$this->sdk = new TodoPago\Sdk($this->http_header, $this->mode);
 		do_action("todopago_post_create_sdk");
@@ -37,6 +40,11 @@ class Core {
 		}
 	}
 
+	public function getDataBase()
+	{
+		return $this->wpdb;
+	}
+
 	public function call_sar() {
 		do_action("todopago_pre_call_sar");
 
@@ -45,7 +53,18 @@ class Core {
 		$dataOperacion = apply_filters("todopago_sar_data_operacion", array());
 
 		$responseSAR = $this->sdk->sendAuthorizaRequest($dataComercio, $dataOperacion);
-		//TODO: Guardar tabla transaction
+		update_post_meta( $order_id, 'response_SAR', serialize($response_SAR));
+		$this->getDataBase()->insert(
+                $this->getDataBase()->prefix.'todopago_transaccion',
+                array('id_orden' => $dataOperacion['OPERATIONID'],
+                      'params_SAR'=>json_encode(array("Operacion" => $dataOperacion, "comercio" => $dataComercio)),
+                      'first_step'=>date("Y-m-d H:i:s"),
+                      'response_SAR'=>json_encode($response_sar),
+                      'request_key'=>$response_sar["RequestKey"],
+                      'public_request_key'=>$response_sar['PublicRequestKey']
+                     ),
+                array('%d','%s','%s','%s','%s')
+            );
 		if($responseSAR["StatusCode"] == 702 && !empty($dataComercio["Merchant"]) && !empty($dataSecurity)){
 			$responseSAR = $this->sdk->sendAuthorizaRequest($dataComercio, $dataOperacion);
 		}
@@ -77,7 +96,7 @@ class Core {
 
 			}
 			else($form_type == self::EXTERNAL_FORM){
-				//TODO: Loguear
+				$this->get_logger("debug", "formulario ecterno");
 				do_action("todopago_sar_externalform", $responseSAR);
 			}
 		}
