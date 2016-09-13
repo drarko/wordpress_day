@@ -81,12 +81,37 @@ class Core {
 
 
 	public function void_request() {
+		do_action("todopago_pre_void_request");
+		$options_return = apply_filters("todopago_void_request_data", array()); 	
+		try {
+            $return_response = $this->sdk->voidRequest($options_return);
+           // $logger->info("Se hace devolucion Total voidRequest : " . var_export($return_response ,true) );
+        }
+        catch (Exception $e) {
+           // $logger->error("Falló al consultar el servicio: ", $e);
+            $return_response = array( 'error_message' => "Falló al consultar el servicio:" . $e->getMessage() );
 
+        }
+        do_action("todopago_response_void_request", $return_response );
+		do_action("todopago_post_void_request");
 	}
 
 
 	public function return_request() {
+		do_action("todopago_pre_return_request");
+		$options_return = apply_filters("todopago_return_request_data", array());
+		try {
+            $return_response = $this->sdk->returnRequest($options_return);
+           // $logger->info("Se hace devolucion Parcial returnRequest : " . var_export($return_response ,true) );
+        }
+        catch (Exception $e) {
+           // $logger->error("Falló al consultar el servicio: ", $e);
+            //throw new Exception("Falló al consultar el servicio");
+            $return_response = array( 'error_message' => "Falló al consultar el servicio:" . $e->getMessage() );
+        }
 
+        do_action("todopago_response_return_request", $return_response );
+        do_action("todopago_post_return_request");
 	}
 
 	protected function format_status($response_status ){
