@@ -41,14 +41,14 @@ class Core {
 			//TODO: Loguear
 		}
 		if ($responseSAR["StatusCode"] == -1) {
-			do_action("todopago_sar_response_ok");
+			// do_action("todopago_sar_response_ok");
 
 			//FILTER: Form Type
 			$form_type = apply_filters("todopago_sar_formtype", $responseSAR);
 
 			if($form_type == self::HIBRIDO_FORM){
 				//TODO: Loguear
-				do_action("todopago_sar_hybridform", $responseSAR);
+				// do_action("todopago_sar_hybridform", $responseSAR);
 
 				////HIBRIDO
 										$basename = apply_filters("todopago_sar_hybridform_basename");
@@ -61,12 +61,6 @@ class Core {
                     $amount = $dataOperacion['CSPTGRANDTOTALAMOUNT'];
 										$prk = $responseSAR["PublicRequestKey"];
 
-
-                    $home = home_url();
-
-                    $arrayHome = explode ("/", $home);
-
-
                     // $return_URL_ERROR = $arrayHome[0].'//'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
 										$return_URL_ERROR = apply_filters("todopago_sar_externalform_urlerror");
 
@@ -78,9 +72,7 @@ class Core {
                     // }
 										$return_URL_OK = apply_filters("todopago_sar_externalform_urlok");
 
-										$mode = apply_filters("todopago_mode","test");
-
-                    $env_url = ($mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
+                    $env_url = ($this->mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
 
 										do_action("todopago_sar_hybridform_beforedraw");
 
