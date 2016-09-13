@@ -40,53 +40,40 @@ class Core {
 	public function call_sar() {
 		do_action("todopago_pre_call_sar");
 
+		$this->get_logger("debug", __METHOD__);
 		$dataComercio = apply_filters("todopago_sar_data_comercio", array());
 		$dataOperacion = apply_filters("todopago_sar_data_operacion", array());
 
 		$responseSAR = $this->sdk->sendAuthorizaRequest($dataComercio, $dataOperacion);
-		//TODO: Loguear
 		//TODO: Guardar tabla transaction
 		if($responseSAR["StatusCode"] == 702 && !empty($dataComercio["Merchant"]) && !empty($dataSecurity)){
 			$responseSAR = $this->sdk->sendAuthorizaRequest($dataComercio, $dataOperacion);
-			//TODO: Loguear
 		}
+		$this->get_logger("debug", "resultado SAR: ".json_encode($responseSAR));
 		if ($responseSAR["StatusCode"] == -1) {
-			// do_action("todopago_sar_response_ok");
-
-			//FILTER: Form Type
 			$form_type = apply_filters("todopago_sar_formtype", $responseSAR);
 
 			if($form_type == self::HIBRIDO_FORM){
-				//TODO: Loguear
-				// do_action("todopago_sar_hybridform", $responseSAR);
+				$this->get_logger("info", "formulario hibrido");
+				$basename = apply_filters("todopago_sar_hybridform_basename");
+        $baseurl = plugins_url();
+        $form_dir = "$baseurl/$basename/view/formulario-hibrido";
+        $firstname = $dataOperacion['CSSTFIRSTNAME'];
+        $lastname = $dataOperacion['CSSTLASTNAME'];
+        $email = $dataOperacion['CSSTEMAIL'];
 
-				////HIBRIDO
-										$basename = apply_filters("todopago_sar_hybridform_basename");
-                    $baseurl = plugins_url();
-                    $form_dir = "$baseurl/$basename/view/formulario-hibrido";
-                    $firstname = $dataOperacion['CSSTFIRSTNAME'];
-                    $lastname = $dataOperacion['CSSTLASTNAME'];
-                    $email = $dataOperacion['CSSTEMAIL'];
-                    $merchant = $dataOperacion['MERCHANT'];
-                    $amount = $dataOperacion['CSPTGRANDTOTALAMOUNT'];
-										$prk = $responseSAR["PublicRequestKey"];
+        $merchant = $dataOperacion['MERCHANT'];
+        $amount = $dataOperacion['CSPTGRANDTOTALAMOUNT'];
+				$prk = $responseSAR["PublicRequestKey"];
 
-                    // $return_URL_ERROR = $arrayHome[0].'//'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
-										$return_URL_ERROR = apply_filters("todopago_sar_externalform_urlerror");
+        $return_URL_ERROR = apply_filters("todopago_sar_externalform_urlerror");
+				$return_URL_OK = apply_filters("todopago_sar_externalform_urlok");
 
-                    // if($this->url_after_redirection == "order_received"){
-                    //     $return_URL_OK = $order->get_checkout_order_received_url().'&second_step=true';
-                    // }else{
-                    //     $return_URL_OK = $arrayHome[0].'//'."{$_SERVER['HTTP_HOST']}/{$_SERVER['REQUEST_URI']}".'&second_step=true';
-                    //
-                    // }
-										$return_URL_OK = apply_filters("todopago_sar_externalform_urlok");
+        $env_url = ($this->mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
 
-                    $env_url = ($this->mode == "prod" ? TODOPAGO_FORMS_PROD : TODOPAGO_FORMS_TEST);
+				do_action("todopago_sar_hybridform_beforedraw");
 
-										do_action("todopago_sar_hybridform_beforedraw");
-
-                    require 'view/formulario-hibrido/formulario.php';
+        require 'view/formulario-hibrido/formulario.php';
 
 			}
 			else($form_type == self::EXTERNAL_FORM){
