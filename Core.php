@@ -6,10 +6,12 @@ namespace TodoPago;
 
 class Core {
 	private $sdk;
+	private $logger;
 
-	public function __construct() {
+	public function __construct($logger) {
 		do_action("todopago_pre_create_sdk");
 		
+		$this->logger = $logger;
 		$http_header = apply_filters("todopago_header","");
 		$mode = apply_filters("todopago_mode","test");
 		
@@ -85,10 +87,10 @@ class Core {
 		$options_return = apply_filters("todopago_void_request_data", array()); 	
 		try {
             $return_response = $this->sdk->voidRequest($options_return);
-           // $logger->info("Se hace devolucion Total voidRequest : " . var_export($return_response ,true) );
+            $this->logger->info("Se hace devolucion Total voidRequest : " . var_export($return_response ,true) );
         }
         catch (Exception $e) {
-           // $logger->error("Falló al consultar el servicio: ", $e);
+            $this->logger->error("Falló al consultar el servicio: ", $e);
             $return_response = array( 'error_message' => "Falló al consultar el servicio:" . $e->getMessage() );
 
         }
@@ -102,10 +104,10 @@ class Core {
 		$options_return = apply_filters("todopago_return_request_data", array());
 		try {
             $return_response = $this->sdk->returnRequest($options_return);
-           // $logger->info("Se hace devolucion Parcial returnRequest : " . var_export($return_response ,true) );
+            $this->logger->info("Se hace devolucion Parcial returnRequest : " . var_export($return_response ,true) );
         }
         catch (Exception $e) {
-           // $logger->error("Falló al consultar el servicio: ", $e);
+            $this->logger->error("Falló al consultar el servicio: ", $e);
             //throw new Exception("Falló al consultar el servicio");
             $return_response = array( 'error_message' => "Falló al consultar el servicio:" . $e->getMessage() );
         }
