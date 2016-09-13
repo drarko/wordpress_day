@@ -6,9 +6,9 @@ namespace TodoPago;
 
 class Core {
 	private $sdk;
-	private $logger;
+	private $logger = null;
 
-	public function __construct($logger) {
+	public function __construct($logger = null) {
 		do_action("todopago_pre_create_sdk");
 		
 		$this->logger = $logger;
@@ -17,6 +17,16 @@ class Core {
 		
 		$this->sdk = new TodoPago\Sdk($http_header, $mode);
 		do_action("todopago_post_create_sdk");
+	}
+
+	public function set_logger($logger ) {
+		$this->logger = $logger;
+	}
+
+	public function get_logger($level, $message) {
+		if($this->logger != null) {
+			$this->logger->{$level}($message);
+		}
 	}
 
 	public function call_sar() {
@@ -81,16 +91,21 @@ class Core {
 		do_action("todopago_post_get_credentials");
 	}
 
+	
+
 
 	public function void_request() {
 		do_action("todopago_pre_void_request");
-		$options_return = apply_filters("todopago_void_request_data", array()); 	
+		$options_return = apply_filters("todopago_void_request_data", array()); 
+		
+		$this->get_logger("info","Se hace devolucion Total voidRequest - Request : " . var_export($options_return ,true) );	
+		
 		try {
             $return_response = $this->sdk->voidRequest($options_return);
-            $this->logger->info("Se hace devolucion Total voidRequest : " . var_export($return_response ,true) );
+            $this->get_logger("info", "Se hace devolucion Total voidRequest - Response : " . var_export($return_response ,true) );
         }
         catch (Exception $e) {
-            $this->logger->error("Falló al consultar el servicio: ", $e);
+            $this->get_logger("error", "Falló al consultar el servicio: ". $e->getMessage());
             $return_response = array( 'error_message' => "Falló al consultar el servicio:" . $e->getMessage() );
 
         }
@@ -102,12 +117,13 @@ class Core {
 	public function return_request() {
 		do_action("todopago_pre_return_request");
 		$options_return = apply_filters("todopago_return_request_data", array());
+		$this->get_logger("info","Se hace devolucion Total returnRequest - Request : " . var_export($options_return ,true) );	
 		try {
             $return_response = $this->sdk->returnRequest($options_return);
-            $this->logger->info("Se hace devolucion Parcial returnRequest : " . var_export($return_response ,true) );
+            $this->get_logger("info", "Se hace devolucion Parcial returnRequest - Response : " . var_export($return_response ,true) );
         }
         catch (Exception $e) {
-            $this->logger->error("Falló al consultar el servicio: ", $e);
+            $this->get_logger("error", "Falló al consultar el servicio: ". $e->getMessage());
             //throw new Exception("Falló al consultar el servicio");
             $return_response = array( 'error_message' => "Falló al consultar el servicio:" . $e->getMessage() );
         }
