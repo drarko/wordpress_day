@@ -40,8 +40,7 @@ class Core {
 		}
 	}
 
-	public function getDataBase()
-	{
+	public function getDataBase() {
 		return $this->wpdb;
 	}
 
