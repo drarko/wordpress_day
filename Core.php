@@ -30,6 +30,26 @@ class Core {
 		do_action("todoapgo_post_call_sar");	
 	}
 
-	//etc... etc...
+	public function call_gaa() {
+
+	}
+
+	public function get_status() {
+
+	}
+
+	public function get_credentials() {
+
+	}
+
+	public function void_request() {
+
+	}
+
+	public function return_request() {
+
+	}
+
+
 
 }	
