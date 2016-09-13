@@ -101,7 +101,7 @@ class Core {
 			}
 		}
 		else {
-			//TODO: loguear
+			$this->get_logger("debug", "fallo");
 			do_action("todopago_sar_response_error");
 		}
 		// do_action("todopago_response_sar", $responseSAR);
@@ -113,10 +113,42 @@ class Core {
 	public function call_gaa() {
 		do_action("todopago_pre_call_gaa");
 
+		$this->get_logger("debug", __METHOD__);
+		$order_id = apply_filters("todopago_gaa_orderid");
 		$optionsAnswer = apply_filters("todopago_gaa_options_answer", array());
 
+		$row = get_post_meta($order_id, 'response_SAR', true);
+		$response_SAR = unserialize($row);
+		$optionsAnswer['RequestKey'] = $responseSAR['RequestKey'];
+
+		$this->get_logger("debug", "params GAA: ".json_encode($optionsAnswer));
+
 		$responseGAA = $this->sdk->getAuthorizeAnswer($optionsAnswer);
-		do_action("todopago_response_gaa", $responseGAA);
+		$this->get_logger("info", "responseGAA: ".json_encode($responseGAA));
+
+		$this->getDataBase()->update(
+                $this->getDataBase()->prefix.'todopago_transaccion',
+                array(
+                    'second_step' => date("Y-m-d H:i:s"), // string
+                    'params_GAA' => json_encode($optionsAnswer), // string
+                    'response_GAA' => json_encode($responseGAA), // string
+                    'answer_key' => $optionsAnswer['AnswerKey'] //string
+                ),
+                array('id_orden'=>$order->id), // int
+                array(
+                    '%s',
+                    '%s',
+                    '%s',
+                    '%s'
+                ),
+                array('%d')
+            );
+
+			if ($response_GAA["StatusCode"] == -1) {
+				do_action("todopago_response_gaa_ok");
+			} else {
+				do_action("todopago_response_gaa_error");
+			}
 
 		do_action("todopago_post_call_gaa");
 	}
